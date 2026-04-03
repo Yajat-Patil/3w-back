@@ -4,13 +4,18 @@ const cors = require("cors");
 
 const app = express();
 
+/* ================= MIDDLEWARE ================= */
+
 app.use(cors());
 app.use(express.json());
 
 /* ================= DB CONNECTION ================= */
 
-mongoose.connect("mongodb+srv://userw:userw@cluster0.5ja3aht.mongodb.net/social_app?retryWrites=true&w=majority&appName=Cluster0")
-.then(() => console.log("MongoDB connected ✅"))
+// Optional but good practice
+mongoose.set("strictQuery", true);
+
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("MongoDB connected "))
 .catch(err => console.log(err));
 
 /* ================= MODELS ================= */
@@ -48,15 +53,16 @@ app.post("/signup", async (req, res) => {
     const user = new User({ username, email, password });
     await user.save();
 
-    res.send("User registered ✅");
+    res.send("User registered ");
   } catch (err) {
     res.status(500).send("Signup error");
   }
 });
-//get users api
+
+// GET USERS
 app.get("/users", async (req, res) => {
-    const users = await User.find();
-    res.send(users);
+  const users = await User.find();
+  res.json(users);
 });
 
 // LOGIN
@@ -67,11 +73,11 @@ app.post("/login", async (req, res) => {
     const user = await User.findOne({ email, password });
 
     if (!user) {
-      return res.status(400).send("Invalid credentials ❌");
+      return res.status(400).send("Invalid credentials ");
     }
 
     res.json({
-      message: "Login successful ✅",
+      message: "Login successful ",
       user
     });
 
@@ -98,13 +104,13 @@ app.post("/posts", async (req, res) => {
 
     await post.save();
 
-    res.send("Post created ✅");
+    res.send("Post created ");
   } catch (err) {
     res.status(500).send("Error creating post");
   }
 });
 
-// GET ALL POSTS (FEED)
+// GET ALL POSTS
 app.get("/posts", async (req, res) => {
   const posts = await Post.find().sort({ createdAt: -1 });
   res.json(posts);
@@ -122,7 +128,7 @@ app.post("/posts/:id/like", async (req, res) => {
 
   await post.save();
 
-  res.send("Post liked ❤️");
+  res.send("Post liked ");
 });
 
 // COMMENT POST
@@ -135,17 +141,19 @@ app.post("/posts/:id/comment", async (req, res) => {
 
   await post.save();
 
-  res.send("Comment added 💬");
+  res.send("Comment added ");
 });
 
 /* ================= TEST ================= */
 
 app.get("/", (req, res) => {
-  res.send("API running 🚀");
+  res.send("API running ");
 });
 
 /* ================= SERVER ================= */
 
-app.listen(5001, () => {
-  console.log("Server running on port 5001");
+const PORT = process.env.PORT || 5001;
+
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
 });
